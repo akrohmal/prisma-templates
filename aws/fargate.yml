@@ -74,6 +74,11 @@ Parameters:
   ManagementApiSecret:
     Description: The secret for your Prisma server.
     Type: String
+    NoEcho: true
+    
+  CertificateArn:
+    Description: ARN of the load balancer listener certificate
+    Type: String
 
 Mappings:
   # Hard values for the subnet masks. These masks define
@@ -238,8 +243,10 @@ Resources:
         - TargetGroupArn: !Ref 'PrismaTargetGroup'
           Type: 'forward'
       LoadBalancerArn: !Ref 'PublicLoadBalancer'
-      Port: 80
-      Protocol: HTTP
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref CertificateArn
 
   PrismaLogs:
     Type: "AWS::Logs::LogGroup"
@@ -395,11 +402,11 @@ Outputs:
     Export:
       Name: !Join [ ':', [ !Ref 'AWS::StackName', 'ClusterName' ] ]
   
-  ExternalUrl:
-    Description: The url of the external load balancer
-    Value: !Join ['', ['http://', !GetAtt 'PublicLoadBalancer.DNSName']]
+  ExternalDNSName:
+    Description: The DNS name of the external load balancer
+    Value: !GetAtt 'PublicLoadBalancer.DNSName'
     Export:
-      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'ExternalUrl' ] ]
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'ExternalDNSName' ] ]
   
   ECSRole:
     Description: The ARN of the ECS role
